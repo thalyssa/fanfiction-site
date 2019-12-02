@@ -1,6 +1,4 @@
-import users
 import views
-
 
 class State:
     username: str

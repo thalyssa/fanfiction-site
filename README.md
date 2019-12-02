@@ -6,13 +6,13 @@ As histórias publicadas no site possuem nome, ID (Gerado automaticamente), clas
 
 ## Funcionalidades
 
-**Criar perfil:** Compostos por usuário (Único), nome, e-mail e senha. Devem exibir as histórias do usuário, seus favoritos e uma descrição personalizável pelo próprio usuário.
+**Criar perfil:** Compostos por usuário (Único), e-mail e senha. Devem exibir as histórias do usuário, seus favoritos e uma descrição personalizável pelo próprio usuário.
 
-**Editar perfil:** O usuário deve ser capaz de fazer alterações em todos os atributos do seu perfil. No caso de troca de usuário, o site deve verificar se o novo nick já está sendo utilizado.
+**Editar perfil:** O usuário deve ser capaz de fazer alterações em todos os atributos do seu perfil.
 
 **Pesquisar história:** Dado o nome de uma história, o site deve retornar todas as histórias correspondentes ao parâmetro.
 
-**Criar história:** Recebendo os atributos necessários (nome, classificação, gêneros, categoria e sinopse), o sistema registra a história, automaticamente associando-a ao usuário que a criou e gerando um ID único. Uma história, quando criada, obrigatoriamente deve receber o primeiro capítulo e fornecer ao usuário a opção de defini-la como concluída ou não.
+**Criar história:** Recebendo os atributos necessários (nome, classificação, gêneros, categoria e sinopse), o sistema registra a história, automaticamente associando-a ao usuário que a criou e gerando um ID único. Uma história, quando criada, obrigatoriamente deve receber o primeiro capítulo.
 
 **Adicionar capítulo:** Recebe um título e a descrição do capítulo para postá-lo. O capítulo é obrigatoriamente associado a uma história.
 
