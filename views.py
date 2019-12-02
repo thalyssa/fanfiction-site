@@ -1,5 +1,7 @@
 import os
 import json
+import shutil
+
 
 class View:
     def __init__(self, state):
@@ -65,10 +67,19 @@ class InitView(View):
             with open(self.state.users_json_path, 'w') as file:
                 json.dump(users_data, file)
 
+            user_path = os.path.join(self.state.users_data_path, username)
+            if os.path.isdir(user_path):
+                shutil.rmtree(user_path)
+            os.mkdir(user_path)
+        else:
+            print('Usuário já existe!\n')
+
 class LoggedView(View):
     def prompt(self):
         print(f"Olá, {self.state.username}!")
         print(f"E-mail: {self.state.userdata['email']}\n")
+
+        print("0 - Criar história")
         print("1 - Listar Minhas Estórias")
         print("2 - Listar estórias favoritas")
         print("3 - Listar autores favoritos")
@@ -80,3 +91,51 @@ class LoggedView(View):
         option = input('\n')
         return option
 
+    def run(self, option):
+        if option == '0':
+            v = CreateStoryView(self.state)
+            self.state.view = v
+        elif option == '1':
+            pass
+        elif option == '2':
+            pass
+        elif option == '3':
+            pass
+        elif option == '4':
+            pass
+        elif option == '5':
+            pass
+        elif option == '6':
+            self.state.username = None
+            self.state.userdata = None
+            v = InitView(self.state)
+            self.state.view = v
+        elif option == '7':
+            pass
+        else:
+            print('Opção inválida')
+
+class CreateStoryView(View):
+    def prompt(self):
+        print('--Criar história--')
+        title = input('Título: ')
+        rating = input('Classificação: ')
+        genre = input('Gênero: ')
+        category = input('Categoria: ')
+        synopsis = input('Sinopse: ')
+        author = self.state.username
+        is_finished = False
+
+        story_data = {'title' : title, 'rating' : rating, 'genre' : genre, 'category' : category, 'synopsis' : synopsis, 'author' : author, 'is_finished' : is_finished}
+
+        stories_data_path = os.path.join(self.state.users_data_path, self.state.username, title)
+        story_file_name = os.path.join(stories_data_path, 'story_data.json')
+
+        if not os.path.isdir(stories_data_path):
+            os.mkdir(stories_data_path)
+
+        with open(story_file_name, 'w') as file:
+            json.dump(story_data, file)
+
+    def run(self, option):
+        pass

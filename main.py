@@ -2,17 +2,24 @@ import os
 import json
 import state
 import views
-import users
 
-option: str = ''
+option = ''
 state = state.State()
 view = views.InitView(state)
 state.running = True
 state.view = view
 
 APP_PATH = os.getcwd()
+state.app_path = APP_PATH
+
 USERS_JSON_PATH = os.path.join(APP_PATH, 'users.json')
 state.users_json_path = USERS_JSON_PATH
+
+USERS_DATA_PATH = os.path.join(APP_PATH, 'users')
+state.users_data_path = USERS_DATA_PATH
+
+if not os.path.isdir(USERS_DATA_PATH):
+    os.mkdir(USERS_DATA_PATH)
 
 if not os.path.isfile(USERS_JSON_PATH):
     users_data = {
@@ -25,6 +32,9 @@ if not os.path.isfile(USERS_JSON_PATH):
     }
     with open(USERS_JSON_PATH, 'w') as file:
         json.dump(users_data, file)
+    admin_data_path = os.path.join(USERS_DATA_PATH, 'admin')
+    if not os.path.isdir(admin_data_path):
+        os.mkdir(admin_data_path)
 
 while state.running:
     option = state.prompt()
