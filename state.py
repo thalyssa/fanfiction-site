@@ -6,6 +6,8 @@ class State:
     username: str
     userdata: dict
 
+    current_story: str
+
     view: views.View
     running: bool
 

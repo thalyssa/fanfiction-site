@@ -1,6 +1,7 @@
 import os
 import json
 import shutil
+import subprocess
 
 
 class View:
@@ -119,6 +120,12 @@ class CreateStoryView(View):
     def prompt(self):
         print('--Criar história--')
         title = input('Título: ')
+
+        story_data_path = os.path.join(self.state.users_data_path, self.state.username, title.lower())
+        if os.path.isdir(story_data_path):
+            print('Estória já existente!')
+            return
+
         rating = input('Classificação: ')
         genre = input('Gênero: ')
         category = input('Categoria: ')
@@ -126,16 +133,78 @@ class CreateStoryView(View):
         author = self.state.username
         is_finished = False
 
-        story_data = {'title' : title, 'rating' : rating, 'genre' : genre, 'category' : category, 'synopsis' : synopsis, 'author' : author, 'is_finished' : is_finished}
+        story_data = {'title' : title, 'rating' : rating, 'genre' : genre, 'category' : category, 'synopsis' : synopsis, 'author' : author, 'chapters': [], 'is_finished' : is_finished}
 
-        stories_data_path = os.path.join(self.state.users_data_path, self.state.username, title)
-        story_file_name = os.path.join(stories_data_path, 'story_data.json')
+        story_file_name = os.path.join(story_data_path, 'story_data.json')
 
-        if not os.path.isdir(stories_data_path):
-            os.mkdir(stories_data_path)
+        if not os.path.isdir(story_data_path):
+            os.mkdir(story_data_path)
 
         with open(story_file_name, 'w') as file:
             json.dump(story_data, file)
 
+        self.state.current_story = story_data_path
+
+        v = WorkingStoryView(self.state)
+        self.state.view = v
+
+
+
+
     def run(self, option):
         pass
+
+class WorkingStoryView(View):
+
+    story_data: dict
+    story_data_path: str
+
+    def run(self, option):
+        if option == '1':
+            self.create_new_chapter()
+        elif option == '2':
+            pass
+        elif option == '3':
+            pass
+        elif option == '4':
+            pass
+        elif option == '5':
+            pass
+        else:
+            print('Opção inválida')
+
+    def prompt(self):
+        self.story_data_path = os.path.join(self.state.current_story, 'story_data.json')
+        with open(self.story_data_path, 'r') as file:
+            self.story_data = json.load(file)
+        print(f'Visualizando: {self.story_data["title"]}')
+
+        print('--- Capítulos ---')
+        chapters_count = len(self.story_data['chapters'])
+
+        for i in range(0, chapters_count):
+            print(f' c{i} - {self.story_data["chapters"][i]}')
+
+        print()
+        print('1 - Novo capítulo')
+        print('2 - Editar capítulo')
+        print('3 - Excluir capítulo')
+        print('4 - Editar dados da estória')
+        print('5 - Voltar')
+
+        option = input('\n')
+        return option
+
+    def create_new_chapter(self):
+
+        chapter_name = input('Nome do capítulo: ')
+
+        self.story_data['chapters'].append(chapter_name)
+
+        with open(self.story_data_path, 'w') as file:
+            json.dump(self.story_data, file)
+
+        chapter_index = len(self.story_data['chapters']) - 1
+        chapter_file_path = os.path.join(self.state.current_story, f'{chapter_index}.txt')
+
+        subprocess.run(['nano', chapter_file_path])
