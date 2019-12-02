@@ -1,11 +1,12 @@
-import user
+import users
 import views
 
 
 class State:
-    user: user.User
+    user: users.User
     view: views.View
-    option: str
+    running: bool
+    users_json_path: str
 
     def run(self, option):
         self.view.run(option)

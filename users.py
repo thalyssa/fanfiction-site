@@ -1,3 +1,4 @@
+
 class User:
 
     def __init__(self, name, username, email, password):
@@ -19,4 +20,5 @@ class User:
         else:
             print("Ocorreu um erro, tente novamente")
             return False
+
 
