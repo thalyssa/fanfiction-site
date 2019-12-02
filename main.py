@@ -19,7 +19,7 @@ if not os.path.isfile(USERS_JSON_PATH):
         'users': {
             'admin': {
                 'email': 'admin@admin.com',
-                'senha': '12345',
+                'pass': '12345',
             }
         }
     }

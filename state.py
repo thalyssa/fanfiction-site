@@ -3,7 +3,8 @@ import views
 
 
 class State:
-    user: users.User
+    username: str
+    userdata: dict
     view: views.View
     running: bool
     users_json_path: str
