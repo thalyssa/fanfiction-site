@@ -105,8 +105,8 @@ class LoggedView(View):
 
     def __init__(self, state):
         self.state = state
-        self.users_data_json_path = os.path.join(self.state.users_data_path, self.state.username, 'user_data.json')
-        with open(self.users_data_json_path, 'r') as file:
+        self.user_data_json_path = os.path.join(self.state.users_data_path, self.state.username, 'user_data.json')
+        with open(self.user_data_json_path, 'r') as file:
             self.user_data = json.load(file)
 
     def prompt(self):
@@ -133,7 +133,7 @@ class LoggedView(View):
             v = CreateStoryView(self.state)
             self.state.view = v
         elif option == '1':
-            pass
+            self.list_my_stories()
         elif option == '2':
             pass
         elif option == '3':
@@ -163,11 +163,31 @@ class LoggedView(View):
         self.user_data['email'] = email
         self.user_data['pass'] = password
 
-        with open(self.users_data_json_path, 'w') as file:
+        with open(self.user_data_json_path, 'w') as file:
             json.dump(self.user_data, file)
 
         self.state.userdata = self.user_data
 
+    def list_my_stories(self):
+
+        stories_list_length = len(self.user_data['stories'])
+        for i in range(0, stories_list_length):
+            print(f'{i} - {self.user_data["stories"][i]}')
+
+        option = int(input('Escolha uma estoria'))
+
+        current_story_path = os.path.join(self.state.users_data_path, self.state.username, self.user_data["stories"][option])
+
+        self.state.current_story = current_story_path
+
+        v = WorkingStoryView(self.state)
+        v.story_data_path = current_story_path
+
+        current_story_json = os.path.join(current_story_path, 'story_data.json')
+        with open(current_story_json, 'r') as file:
+            v.story_data = json.load(file)
+
+        self.state.view = v
 
 class CreateStoryView(View):
     def prompt(self):
@@ -248,7 +268,7 @@ class WorkingStoryView(View):
         elif option == '2':
             pass
         elif option == '3':
-            pass
+            self.remove_chapter()
         elif option == '4':
             pass
         elif option == '5':
@@ -269,6 +289,38 @@ class WorkingStoryView(View):
         chapter_file_path = os.path.join(self.state.current_story, f'{chapter_index}.txt')
 
         subprocess.run(['nano', chapter_file_path])
+
+    def remove_chapter(self):
+
+        option = input('Digite o indice do capitulo a ser excluido: ')
+        option = option.lower()
+        option = option.strip('c')
+        option = int(option)
+
+        story_json_path = os.path.join(self.state.current_story, 'story_data.json')
+
+        with open(story_json_path, 'r') as file:
+            current_story_data = json.load(file)
+
+        chapter_list_length = len(current_story_data['chapters'])
+
+        del current_story_data['chapters'][option]
+        with open(story_json_path, 'w') as file:
+            json.dump(current_story_data, file)
+
+        chapter_name = str(option) + '.txt'
+        chapter_file_path = os.path.join(self.state.current_story, chapter_name)
+
+        print('Removendo:\n', chapter_file_path)
+        os.remove(chapter_file_path)
+
+        for i in range(option + 1, chapter_list_length):
+            source_file_path = os.path.join(self.state.current_story, str(i)+'.txt')
+            dest_file_path = os.path.join(self.state.current_story, str(i - 1)+'.txt')
+            print('Renomeando:\n', source_file_path, '\npara', dest_file_path)
+            os.rename(source_file_path, dest_file_path)
+
+        print('Capitulo excluido com sucesso')
 
 
 class SearchView(View):
@@ -379,6 +431,8 @@ class AdminControlPanelView(View):
             pass
         elif option == '2':
             self.remove_user()
+        elif option == '3':
+            pass
         else:
             print('Opção inválida!')
 
