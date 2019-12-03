@@ -27,7 +27,8 @@ class View:
 
     def prompt(self):
         print('Proto shit, don\'t use.')
-        return ''
+        option = input('Nada acontecera.')
+        return option
 
     def run(self, option: str):
         print(f'Opção: {option}')
@@ -102,7 +103,8 @@ class InitView(View):
             os.mkdir(user_path)
 
             user_index = len(users_data['users']) - 1
-            user_data = {'index': user_index, 'email': email, 'pass': password, 'stories': []}
+            user_data = {'index': user_index, 'email': email, 'pass': password, 'stories': [], 'fav_authors': [],
+                         'fav_stories': []}
 
             user_json_path = os.path.join(user_path, 'user_data.json')
 
@@ -119,10 +121,9 @@ class LoggedView(View):
         print(f"Olá, {self.state.username}!")
         print(f"E-mail: {self.state.user_data['email']}\n")
 
-        print("0 - Criar história")
-        print("1 - Listar Minhas Estórias")
-        print("2 - Listar estórias favoritas")
-        print("3 - Listar autores favoritos")
+        print("1 - Criar história")
+        print("2 - Listar Minhas Estórias")
+        print("3 - Favoritos")
         print("4 - Pesquisar estórias")
         print("5 - Alterar Perfil")
         print("6 - Logout")
@@ -135,17 +136,17 @@ class LoggedView(View):
         return option
 
     def run(self, option):
-        if option == '0':
+        if option == '1':
             v = CreateStoryView(self.state)
             self.state.view = v
-        elif option == '1':
-            self.list_my_stories()
         elif option == '2':
-            pass
+            self.list_my_stories()
         elif option == '3':
-            pass
+            v = FavoritesView(self.state)
+            self.state.view = v
         elif option == '4':
-            pass
+            v = SearchView(self.state)
+            self.state.view = v
         elif option == '5':
             self.update_profile()
         elif option == '6':
@@ -421,23 +422,105 @@ class AuthorView(View):
             print('Obras: ')
             for i in range(0, length):
                 print(f'{i} - {self.author_data["stories"][i]}')
-            print(f'{i} - Voltar')
+
+        print(f'{length} - Adicionar autor aos favoritos')
+        print(f'{length + 1} - Voltar')
 
         option = input('Opcao: ')
         return int(option)
 
     def run(self, option: str):
 
-        if len(self.author_data['stories']) < 1:
-            # TODO: Voltar para view anterior
-            pass
-        elif int(option) >= len(self.author_data['stories']):
-            # TODO: Voltar para view anterior
-            pass
-        elif int(option) >= 0:
-            story_path = os.path.join(self.author_home, self.author_data['stories'][option])
+        if not str(option).isnumeric():
+            print('Opçao invalida')
+            return
+
+        opt = int(option)
+
+        stories_count = len(self.author_data['stories'])
+
+        if stories_count < 1:
+            if opt == 0:
+                self.add_fav_author()
+            else:
+                print('Voltar escolhido... nao implementado.')
+        elif opt == stories_count:
+            self.add_fav_author()
+        elif opt >= stories_count + 1:
+            print('Voltar escolhido... nao implementado.')
+        elif opt >= 0:
+            story_path = os.path.join(self.author_home, self.author_data['stories'][opt])
             v = ReadStoryView(self.state, story_path)
             self.state.view = v
+
+    def add_fav_author(self):
+
+        if self.author in self.state.user_data['fav_authors']:
+            print('Autor ja favoritado')
+            return
+        else:
+            self.state.user_data['fav_authors'].append(self.author)
+            with open(self.state.user_json_path, 'w') as file:
+                json.dump(self.state.user_data, file)
+            print('Autor favoritado!')
+
+
+class FavoritesView(View):
+
+    def prompt(self):
+        print('-Favoritos-')
+        print('1 - Autores favoritos')
+        print('2 - Historias favoritas')
+        print('3 - Voltar')
+
+        option = input('Opçao: ')
+        return option
+
+    def run(self, option: str):
+        if option == '1':
+            self.list_fav_authors()
+        elif option == '2':
+            self.list_fav_stories()
+        elif option == '3':
+            pass
+        else:
+            print('Opçao invalida')
+
+    def list_fav_authors(self):
+        print('-Autores favoritos-')
+
+        i: int
+
+        fav_authors_len = len(self.state.user_data['fav_authors'])
+
+        for i in range(0, fav_authors_len):
+            print(f'{i} - {self.state.user_data["fav_authors"][i]}')
+        print(f'{fav_authors_len} - Voltar')
+
+        option = int(input('Opçao: '))
+
+        if option < fav_authors_len:
+            v = AuthorView(self.state, self.state.user_data["fav_authors"][option])
+            self.state.view = v
+        elif option == fav_authors_len:
+            print('Voltar selecionado... Nao implementado =(')
+        else:
+            print('Opçao invalida')
+
+
+    def list_fav_stories(self):
+        print('-Historias favoritas-')
+
+        i: int
+
+        fav_stories_len = len(self.state.user_data['fav_stories'])
+
+        for i in range(0, fav_stories_len):
+            print(f'{i} - {self.state.user_data["fav_stories"][i]}')
+        print(f'{i} - Voltar')
+
+        option = int(input('Opçao: '))
+        pass
 
 
 class ReadStoryView(View):

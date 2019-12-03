@@ -27,6 +27,9 @@ if not os.path.isfile(USERS_JSON_PATH):
     admin_data = {
         'email': 'admin@admin.com',
         'pass': '12345',
+        'stories': [],
+        'fav_authors': [],
+        'fav_stories': []
     }
 
     with open(USERS_JSON_PATH, 'w') as file:
