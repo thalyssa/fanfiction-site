@@ -188,6 +188,15 @@ class CreateStoryView(View):
 
         self.state.current_story = story_data_path
 
+        user_json_path = os.path.join(self.state.users_data_path, self.state.username, 'user_data.json')
+        with open(user_json_path, 'r') as file:
+            user_data = json.load(file)
+
+        user_data['stories'].append(title.lower())
+
+        with open(user_json_path, 'w') as file:
+            json.dump(user_data, file)
+
         v = WorkingStoryView(self.state)
         self.state.view = v
 
@@ -248,3 +257,96 @@ class WorkingStoryView(View):
         chapter_file_path = os.path.join(self.state.current_story, f'{chapter_index}.txt')
 
         subprocess.run(['nano', chapter_file_path])
+
+class SearchView(View):
+    def prompt(self):
+        print('Busca de estorias')
+        print('1 - Busca por titulo')
+        print('2 - Busca por autor')
+        print('3 - Voltar')
+
+        option = input('\n')
+        return option
+
+    def run(self, option: str):
+        if option == '1':
+            pass
+        elif option == '2':
+            self.search_by_author()
+        elif option == '3':
+            pass
+        else:
+            print('Opçao invalida')
+
+    def search_by_author(self):
+        name = input('Termo de busca: ')
+
+        with open(self.state.users_json_path, 'r') as file:
+            users_data = json.load(file)
+
+        results = []
+
+        for username in users_data['users']:
+            if name in username:
+                results.append(username)
+
+        length = len(results)
+        if length < 1:
+            print('Nenhum resultado encontrado.')
+            return
+
+        for i in range(0, length):
+            print(f' {i} - {results[i]}')
+
+        option = input('Escolha um autor para vizualizar as obras: ')
+
+        option = int(option)
+        if option < length:
+            v = AuthorView(self.state, results[option])
+            self.state.view = v
+
+
+class AuthorView(View):
+    def __init__(self, state, author):
+        self.state = state
+        self.author = author
+        self.author_dir_path = os.path.join(self.state.users_data_path, author)
+        self.author_json_path = os.path.join(self.state.users_data_path, author, 'user_data.json')
+        with open(self.author_json_path, 'r') as file:
+            self.author_data = json.load(file)
+
+    def prompt(self):
+        print(f'Bem vindo ao perfil de {self.author}')
+
+        length = len(self.author_data['stories'])
+        i = 0
+
+        if length < 1:
+            print('Nenhuma obra publicada')
+        else:
+            print('Obras: ')
+            for i in range(0, length):
+                print(f'{i} - {self.author_data["stories"][i]}')
+            print(f'{i} - Voltar')
+
+        option = input('Opcao: ')
+        return int(option)
+
+    def run(self, option: str):
+
+        if len(self.author_data['stories']) < 1:
+            # TODO: Voltar para view anterior
+            pass
+        elif option >= len(self.author_data['stories']):
+            # TODO: Voltar para view anterior
+            pass
+        elif option >= 0:
+            story_path = os.path.join(self.author_dir_path, self.author_data['stories'][option])
+            v = ReadStoryView(self.state, story_path)
+            self.state.view = v
+
+
+class ReadStoryView(View):
+    def __init__(self, state, story_path):
+        self.state = state
+        self.story_path = story_path
