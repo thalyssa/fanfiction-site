@@ -258,6 +258,7 @@ class WorkingStoryView(View):
 
         subprocess.run(['nano', chapter_file_path])
 
+
 class SearchView(View):
     def prompt(self):
         print('Busca de estorias')
@@ -350,3 +351,53 @@ class ReadStoryView(View):
     def __init__(self, state, story_path):
         self.state = state
         self.story_path = story_path
+
+
+class AdminControlPanelView(View):
+    def prompt(self):
+        print('Painel de Controle da Administração')
+        print('1 - Adicionar uma nova categoria')
+        print('2 - Gerenciamento de usuários')
+
+        option = input('Digite sua opção')
+        return option
+
+    def run(self, option: str):
+        if option == '1':
+            pass
+        elif option == '2':
+            pass
+        else:
+            print('Opção inválida!')
+
+    def user_managment(self):
+        name = input('Termo de busca: ')
+
+        with open(self.state.users_json_path, 'r') as file:
+            users_data = json.load(file)
+
+        results = []
+
+        for username in users_data['users']:
+            if name in username:
+                results.append(username)
+
+        length = len(results)
+        if length < 1:
+            print('Nenhum resultado encontrado.')
+            return
+
+        for i in range(0, length):
+            print(f' {i} - {results[i]}')
+
+        option = input('Escolha o usuário a ser deletado: ')
+
+        self.user_dir_path = os.path.join(self.state.users_data_path, results[option])
+
+        if os.path.isdir(self.user_dir_path):
+            shutil.rmtree(self.user_dir_path)
+
+        self.user_data_path = os.path.join(self.state.users_json_path)
+
+        with open()
+
