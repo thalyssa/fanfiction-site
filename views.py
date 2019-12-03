@@ -17,6 +17,12 @@ class View:
 
 
 class InitView(View):
+
+    def __init__(self, state):
+        self.state = state
+        with open(self.state.users_json_path, 'r') as file:
+            self.state.admins_list = (json.load(file))['admins']
+
     def prompt(self):
         print("Bem vindo! Escolha uma opção:")
         print("1 - Criar perfil")
@@ -99,8 +105,8 @@ class LoggedView(View):
 
     def __init__(self, state):
         self.state = state
-        self.data_json_path = os.path.join(self.state.users_data_path, self.state.username, 'user_data.json')
-        with open(self.data_json_path, 'r') as file:
+        self.users_data_json_path = os.path.join(self.state.users_data_path, self.state.username, 'user_data.json')
+        with open(self.users_data_json_path, 'r') as file:
             self.user_data = json.load(file)
 
     def prompt(self):
@@ -115,6 +121,9 @@ class LoggedView(View):
         print("5 - Alterar Perfil")
         print("6 - Logout")
         print("7 - Excluir Minha Conta")
+
+        if self.state.username in self.state.admin_list:
+            print("8 - Painel de administrador")
 
         option = input('\n')
         return option
@@ -140,6 +149,9 @@ class LoggedView(View):
             self.state.view = v
         elif option == '7':
             pass
+        elif option == '8' and self.state.username in self.state.admin_list:
+            v = AdminControlPanelView(self.state)
+            self.state.view = v
         else:
             print('Opção inválida')
 
@@ -151,7 +163,7 @@ class LoggedView(View):
         self.user_data['email'] = email
         self.user_data['pass'] = password
 
-        with open(self.data_json_path, 'w') as file:
+        with open(self.users_data_json_path, 'w') as file:
             json.dump(self.user_data, file)
 
         self.state.userdata = self.user_data
@@ -357,7 +369,7 @@ class AdminControlPanelView(View):
     def prompt(self):
         print('Painel de Controle da Administração')
         print('1 - Adicionar uma nova categoria')
-        print('2 - Gerenciamento de usuários')
+        print('2 - Remover usuário')
 
         option = input('Digite sua opção')
         return option
@@ -366,11 +378,11 @@ class AdminControlPanelView(View):
         if option == '1':
             pass
         elif option == '2':
-            pass
+            self.remove_user()
         else:
             print('Opção inválida!')
 
-    def user_managment(self):
+    def remove_user(self):
         name = input('Termo de busca: ')
 
         with open(self.state.users_json_path, 'r') as file:
@@ -390,14 +402,16 @@ class AdminControlPanelView(View):
         for i in range(0, length):
             print(f' {i} - {results[i]}')
 
-        option = input('Escolha o usuário a ser deletado: ')
+        option = int(input('Escolha o usuário a ser deletado: '))
 
         self.user_dir_path = os.path.join(self.state.users_data_path, results[option])
 
         if os.path.isdir(self.user_dir_path):
             shutil.rmtree(self.user_dir_path)
 
-        self.user_data_path = os.path.join(self.state.users_json_path)
+        users_data['users'].remove(results[option])
 
-        with open()
+        with open(self.state.users_json_path, 'w') as file:
+            json.dump(users_data, file)
 
+        print('Usuario removido com sucesso')

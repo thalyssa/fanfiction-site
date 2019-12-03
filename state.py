@@ -3,6 +3,9 @@ import views
 class State:
     username: str
     userdata: dict
+    user_home: str
+
+    admin_list: list
 
     current_story: str
 

@@ -3,11 +3,7 @@ import json
 import state
 import views
 
-option = ''
 state = state.State()
-view = views.InitView(state)
-state.running = True
-state.view = view
 
 APP_PATH = os.getcwd()
 state.app_path = APP_PATH
@@ -29,9 +25,9 @@ if not os.path.isfile(USERS_JSON_PATH):
     }
 
     admin_data = {
-                'email': 'admin@admin.com',
-                'pass': '12345',
-            }
+        'email': 'admin@admin.com',
+        'pass': '12345',
+    }
 
     with open(USERS_JSON_PATH, 'w') as file:
         json.dump(users_data, file)
@@ -44,6 +40,18 @@ if not os.path.isfile(USERS_JSON_PATH):
     admin_json_file_path = os.path.join(admin_data_path, 'user_data.json')
     with open(admin_json_file_path, 'w') as file:
         json.dump(admin_data, file)
+
+with open(USERS_JSON_PATH, 'r') as file:
+    users_data = json.load(file)
+state.admin_list = users_data['admins']
+
+view = views.InitView(state)
+state.running = True
+state.view = view
+
+option = ''
+
+print('Admins:\n', state.admin_list)
 
 while state.running:
     option = state.prompt()

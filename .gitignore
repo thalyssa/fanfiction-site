@@ -2,3 +2,5 @@
 __pycache__/
 users/
 users.json
+Pipfile
+Pipfile.lock
