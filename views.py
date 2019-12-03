@@ -5,8 +5,25 @@ import subprocess
 
 
 class View:
+
     def __init__(self, state):
         self.state = state
+        self.reload_user()
+        self.reload_admins()
+
+    def reload_user(self):
+        if self.state.username is not None:
+            user_home = os.path.join(self.state.users_data_path, self.state.username)
+            user_json_path = os.path.join(user_home, 'user_data.json')
+            with open(user_json_path, 'r') as file:
+                user_data = json.load(file)
+            self.state.user_home = user_home
+            self.state.user_json_path = user_json_path
+            self.state.user_data = user_data
+
+    def reload_admins(self):
+        with open(self.state.users_json_path, 'r') as file:
+            self.state.admins_list = (json.load(file))['admins']
 
     def prompt(self):
         print('Proto shit, don\'t use.')
@@ -17,11 +34,6 @@ class View:
 
 
 class InitView(View):
-
-    def __init__(self, state):
-        self.state = state
-        with open(self.state.users_json_path, 'r') as file:
-            self.state.admins_list = (json.load(file))['admins']
 
     def prompt(self):
         print("Bem vindo! Escolha uma opção:")
@@ -59,7 +71,7 @@ class InitView(View):
             if user_data['pass'] == password:
                 print('Usuário encontrado e senha correta')
                 self.state.username = username
-                self.state.userdata = user_data
+                self.state.user_data = user_data
                 v = LoggedView(self.state)
                 self.state.view = v
             else:
@@ -103,15 +115,9 @@ class InitView(View):
 
 class LoggedView(View):
 
-    def __init__(self, state):
-        self.state = state
-        self.user_data_json_path = os.path.join(self.state.users_data_path, self.state.username, 'user_data.json')
-        with open(self.user_data_json_path, 'r') as file:
-            self.user_data = json.load(file)
-
     def prompt(self):
         print(f"Olá, {self.state.username}!")
-        print(f"E-mail: {self.state.userdata['email']}\n")
+        print(f"E-mail: {self.state.user_data['email']}\n")
 
         print("0 - Criar história")
         print("1 - Listar Minhas Estórias")
@@ -144,7 +150,7 @@ class LoggedView(View):
             self.update_profile()
         elif option == '6':
             self.state.username = None
-            self.state.userdata = None
+            self.state.user_data = None
             v = InitView(self.state)
             self.state.view = v
         elif option == '7':
@@ -160,41 +166,37 @@ class LoggedView(View):
         email = input('Novo e-mail: ')
         password = input('Nova senha: ')
 
-        self.user_data['email'] = email
-        self.user_data['pass'] = password
+        self.state.user_data['email'] = email
+        self.state.user_data['pass'] = password
 
-        with open(self.user_data_json_path, 'w') as file:
-            json.dump(self.user_data, file)
+        with open(self.state.user_json_path, 'w') as file:
+            json.dump(self.state.user_data, file)
 
-        self.state.userdata = self.user_data
+        self.state.user_data = self.state.user_data
 
     def list_my_stories(self):
 
-        stories_list_length = len(self.user_data['stories'])
+        stories_list_length = len(self.state.user_data['stories'])
         for i in range(0, stories_list_length):
-            print(f'{i} - {self.user_data["stories"][i]}')
+            print(f'{i} - {self.state.user_data["stories"][i]}')
 
-        option = int(input('Escolha uma estoria'))
+        option = input('Escolha uma estoria')
+        if option.isnumeric():
+            option = int(option)
+            current_story_path = os.path.join(self.state.users_data_path, self.state.username,
+                                              self.state.user_data['stories'][option])
+            self.state.current_story_home = current_story_path
 
-        current_story_path = os.path.join(self.state.users_data_path, self.state.username, self.user_data["stories"][option])
+            v = WorkingStoryView(self.state)
+            self.state.view = v
 
-        self.state.current_story = current_story_path
-
-        v = WorkingStoryView(self.state)
-        v.story_data_path = current_story_path
-
-        current_story_json = os.path.join(current_story_path, 'story_data.json')
-        with open(current_story_json, 'r') as file:
-            v.story_data = json.load(file)
-
-        self.state.view = v
 
 class CreateStoryView(View):
     def prompt(self):
         print('--Criar história--')
         title = input('Título: ')
 
-        story_data_path = os.path.join(self.state.users_data_path, self.state.username, title.lower())
+        story_data_path = os.path.join(self.state.user_home, title.lower())
 
         if os.path.isdir(story_data_path):
             print('Estória já existente!')
@@ -218,16 +220,12 @@ class CreateStoryView(View):
         with open(story_file_name, 'w') as file:
             json.dump(story_data, file)
 
-        self.state.current_story = story_data_path
+        self.state.current_story_home = story_data_path
 
-        user_json_path = os.path.join(self.state.users_data_path, self.state.username, 'user_data.json')
-        with open(user_json_path, 'r') as file:
-            user_data = json.load(file)
+        self.state.user_data['stories'].append(title.lower())
 
-        user_data['stories'].append(title.lower())
-
-        with open(user_json_path, 'w') as file:
-            json.dump(user_data, file)
+        with open(self.state.user_json_path, 'w') as file:
+            json.dump(self.state.user_data, file)
 
         v = WorkingStoryView(self.state)
         self.state.view = v
@@ -238,12 +236,16 @@ class CreateStoryView(View):
 
 class WorkingStoryView(View):
     story_data: dict
-    story_data_path: str
+    story_json_path: str
+
+    def __init__(self, state):
+        super(WorkingStoryView, self).__init__(state)
+        self.story_json_path = os.path.join(self.state.current_story_home, 'story_data.json')
+        with open(self.story_json_path, 'r') as file:
+            self.story_data = json.load(file)
 
     def prompt(self):
-        self.story_data_path = os.path.join(self.state.current_story, 'story_data.json')
-        with open(self.story_data_path, 'r') as file:
-            self.story_data = json.load(file)
+
         print(f'Visualizando: {self.story_data["title"]}')
 
         print('--- Capítulos ---')
@@ -256,7 +258,7 @@ class WorkingStoryView(View):
         print('1 - Novo capítulo')
         print('2 - Editar capítulo')
         print('3 - Excluir capítulo')
-        print('4 - Editar dados da estória')
+        print('4 - Excluir esta estória')
         print('5 - Voltar')
 
         option = input('\n')
@@ -270,7 +272,7 @@ class WorkingStoryView(View):
         elif option == '3':
             self.remove_chapter()
         elif option == '4':
-            pass
+            self.remove_story()
         elif option == '5':
             pass
         else:
@@ -282,11 +284,11 @@ class WorkingStoryView(View):
 
         self.story_data['chapters'].append(chapter_name)
 
-        with open(self.story_data_path, 'w') as file:
+        with open(self.story_json_path, 'w') as file:
             json.dump(self.story_data, file)
 
         chapter_index = len(self.story_data['chapters']) - 1
-        chapter_file_path = os.path.join(self.state.current_story, f'{chapter_index}.txt')
+        chapter_file_path = os.path.join(self.state.current_story_home, f'{chapter_index}.txt')
 
         subprocess.run(['nano', chapter_file_path])
 
@@ -297,7 +299,7 @@ class WorkingStoryView(View):
         option = option.strip('c')
         option = int(option)
 
-        story_json_path = os.path.join(self.state.current_story, 'story_data.json')
+        story_json_path = os.path.join(self.state.current_story_home, 'story_data.json')
 
         with open(story_json_path, 'r') as file:
             current_story_data = json.load(file)
@@ -309,18 +311,45 @@ class WorkingStoryView(View):
             json.dump(current_story_data, file)
 
         chapter_name = str(option) + '.txt'
-        chapter_file_path = os.path.join(self.state.current_story, chapter_name)
+        chapter_file_path = os.path.join(self.state.current_story_home, chapter_name)
 
         print('Removendo:\n', chapter_file_path)
         os.remove(chapter_file_path)
 
         for i in range(option + 1, chapter_list_length):
-            source_file_path = os.path.join(self.state.current_story, str(i)+'.txt')
-            dest_file_path = os.path.join(self.state.current_story, str(i - 1)+'.txt')
+            source_file_path = os.path.join(self.state.current_story_home, str(i) + '.txt')
+            dest_file_path = os.path.join(self.state.current_story_home, str(i - 1) + '.txt')
             print('Renomeando:\n', source_file_path, '\npara', dest_file_path)
             os.rename(source_file_path, dest_file_path)
 
         print('Capitulo excluido com sucesso')
+
+        self.story_data = current_story_data
+
+    def remove_story(self):
+
+        option = input(f'Apagar permanentemente {self.story_data["title"]} ? [s/N]')
+
+        print('Dados da estoria atual:\n', self.story_data)
+        print('\nDados do usuario atual:\n', self.state.user_data)
+
+        if option.lower() == 's':
+
+            self.state.user_data['stories'].remove(self.story_data['title'].lower())
+
+            with open(self.state.user_json_path, 'w') as file:
+                json.dump(self.state.user_data, file)
+
+            shutil.rmtree(self.state.current_story_home)
+            self.state.current_story_home = None
+
+            print('Historia removida com sucesso')
+
+            v = LoggedView(self.state)
+            self.state.view = v
+
+        else:
+            return
 
 
 class SearchView(View):
@@ -351,9 +380,9 @@ class SearchView(View):
 
         results = []
 
-        for username in users_data['users']:
-            if name in username:
-                results.append(username)
+        for author in users_data['users']:
+            if name in author:
+                results.append(author)
 
         length = len(results)
         if length < 1:
@@ -373,9 +402,9 @@ class SearchView(View):
 
 class AuthorView(View):
     def __init__(self, state, author):
-        self.state = state
+        super(AuthorView, self).__init__(state)
         self.author = author
-        self.author_dir_path = os.path.join(self.state.users_data_path, author)
+        self.author_home = os.path.join(self.state.users_data_path, author)
         self.author_json_path = os.path.join(self.state.users_data_path, author, 'user_data.json')
         with open(self.author_json_path, 'r') as file:
             self.author_data = json.load(file)
@@ -402,18 +431,18 @@ class AuthorView(View):
         if len(self.author_data['stories']) < 1:
             # TODO: Voltar para view anterior
             pass
-        elif option >= len(self.author_data['stories']):
+        elif int(option) >= len(self.author_data['stories']):
             # TODO: Voltar para view anterior
             pass
-        elif option >= 0:
-            story_path = os.path.join(self.author_dir_path, self.author_data['stories'][option])
+        elif int(option) >= 0:
+            story_path = os.path.join(self.author_home, self.author_data['stories'][option])
             v = ReadStoryView(self.state, story_path)
             self.state.view = v
 
 
 class ReadStoryView(View):
     def __init__(self, state, story_path):
-        self.state = state
+        super(ReadStoryView, self).__init__(state)
         self.story_path = story_path
 
 
@@ -458,10 +487,10 @@ class AdminControlPanelView(View):
 
         option = int(input('Escolha o usuário a ser deletado: '))
 
-        self.user_dir_path = os.path.join(self.state.users_data_path, results[option])
+        user_home = os.path.join(self.state.users_data_path, results[option])
 
-        if os.path.isdir(self.user_dir_path):
-            shutil.rmtree(self.user_dir_path)
+        if os.path.isdir(user_home):
+            shutil.rmtree(user_home)
 
         users_data['users'].remove(results[option])
 

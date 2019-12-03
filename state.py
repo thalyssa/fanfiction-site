@@ -1,20 +1,21 @@
 import views
 
 class State:
-    username: str
-    userdata: dict
-    user_home: str
-
-    admin_list: list
-
-    current_story: str
-
-    view: views.View
-    running: bool
 
     app_path: str
     users_json_path: str
     users_data_path: str
+    admin_list: list
+
+    username = None
+
+    user_home: str
+    user_json_path: str
+    user_data: dict
+    current_story_home: str
+
+    view: views.View
+    running: bool
 
     def run(self, option):
         self.view.run(option)
