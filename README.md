@@ -14,6 +14,8 @@ As histórias publicadas no site possuem nome, ID (Gerado automaticamente), clas
 
 **Criar história:** Recebendo os atributos necessários (nome, classificação, gêneros, categoria e sinopse), o sistema registra a história, automaticamente associando-a ao usuário que a criou e gerando um ID único. Uma história, quando criada, obrigatoriamente deve receber o primeiro capítulo.
 
+**Ler história:** Permite ao usuário visualizar as histórias publicadas no site.
+
 **Adicionar capítulo:** Recebe um título e a descrição do capítulo para postá-lo. O capítulo é obrigatoriamente associado a uma história.
 
 **Excluir capítulo:** Remove os dados associados a um determinado capítulo.
@@ -23,8 +25,6 @@ As histórias publicadas no site possuem nome, ID (Gerado automaticamente), clas
 **Adicionar história à lista de favoritos:** Permite que um usuário adicione uma história à sua lista de favoritos, que é exibida em seu perfil.
 
 **Adicionar autor aos favoritos:** Permite que um usuário adicione outro à sua lista de favoritos, que é exibida em seu perfil.
-
-**Adicionar categorias:** [Função exclusiva para o administrador do site] Adiciona uma nova categoria de mídia, na qual as histórias podem ser agrupadas.
 
 **Gerenciar usuários:** [Função exclusiva para o administrador do site] Permite que o administrador exclua contas de usuário.  
 

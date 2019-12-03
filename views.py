@@ -269,7 +269,7 @@ class WorkingStoryView(View):
         if option == '1':
             self.create_new_chapter()
         elif option == '2':
-            pass
+            self.edit_chapter()
         elif option == '3':
             self.remove_chapter()
         elif option == '4':
@@ -351,6 +351,16 @@ class WorkingStoryView(View):
 
         else:
             return
+
+    def edit_chapter(self):
+        chapter_num = input('Indice do capitulo: ')
+        chapter_file_path = os.path.join(self.state.current_story_home, f'{chapter_num}.txt')
+
+        if os.path.isfile(chapter_file_path):
+            subprocess.run(['nano', chapter_file_path])
+        else:
+            print('Indice invalido')
+
 
 
 class SearchView(View):
@@ -586,7 +596,7 @@ class ReadStoryView(View):
             print('Voltar nao implementado')
         elif opt < 0:
             print('Opcao invalida')
-        elif opt == chapters_count+1:
+        elif opt == chapters_count + 1:
             self.add_fav_story()
         else:
             self.display_chapter(opt)
@@ -605,7 +615,6 @@ class ReadStoryView(View):
         with open(text_file_path, 'r') as file:
             content = file.read()
         print(f'\nCapitulo {chap_num}:\n\n', content, '\n')
-
 
 
 class AdminControlPanelView(View):
