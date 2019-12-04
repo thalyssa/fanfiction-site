@@ -360,19 +360,16 @@ class WorkingStoryView(View):
 class SearchView(View):
     def prompt(self):
         print('\nBusca de histórias\n')
-        print('1 - Busca por título')
-        print('2 - Busca por autor')
-        print('3 - Voltar')
+        print('1 - Busca por autor')
+        print('2 - Voltar')
 
         option = input('\n')
         return option
 
     def run(self, option: str):
         if option == '1':
-            pass
-        elif option == '2':
             self.search_by_author()
-        elif option == '3':
+        elif option == '2':
             self.back()
         else:
             print('Opção inválida')
