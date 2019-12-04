@@ -63,8 +63,8 @@ class InitView(View):
             print('Opção inválida')
 
     def login(self):
-        username = input('Digite o usuário:')
-        password = input('Digite a senha:')
+        username = input('Digite o usuário: ')
+        password = input('Digite a senha: ')
 
         with open(self.state.users_json_path, 'r') as file:
             users_data = json.load(file)
@@ -77,7 +77,6 @@ class InitView(View):
                 user_data = json.load(file)
 
             if user_data['pass'] == password:
-                print('Usuário encontrado e senha correta')
                 self.state.username = username
                 self.state.user_data = user_data
                 v = LoggedView(self.state)
@@ -88,7 +87,7 @@ class InitView(View):
             print('Usuário não encontrado')
 
     def createUser(self):
-        username = input("Digite um nome de usuário: ")
+        username = input("\nDigite um nome de usuário: ")
         email = input("Digite um endereço de e-mail: ")
         password = input("Digite uma senha: ")
 
@@ -125,8 +124,8 @@ class InitView(View):
 class LoggedView(View):
 
     def prompt(self):
-        print(f"Olá, {self.state.username}!")
-        print(f"E-mail: {self.state.user_data['email']}\n")
+        print(f"\nOlá, {self.state.username}!")
+        print(f"E-mail: {self.state.user_data['email']}\n\n")
 
         print("1 - Criar história")
         print("2 - Listar minhas histórias")
@@ -139,7 +138,7 @@ class LoggedView(View):
         if self.state.username in self.state.admin_list:
             print("8 - Painel de administrador")
 
-        option = input('\n')
+        option = input('\n\n')
         return option
 
     def run(self, option):
@@ -169,7 +168,7 @@ class LoggedView(View):
             print('Opção inválida')
 
     def update_profile(self):
-        print('Alterando dados pessoais')
+        print('\n\nAlterando dados pessoais\n\n')
         email = input('Novo e-mail: ')
         password = input('Nova senha: ')
 
@@ -184,10 +183,11 @@ class LoggedView(View):
     def list_my_stories(self):
 
         stories_list_length = len(self.state.user_data['stories'])
+        print()
         for i in range(0, stories_list_length):
             print(f'{i} - {self.state.user_data["stories"][i]}')
 
-        option = input('Escolha uma história')
+        option = input('Escolha uma história\n')
         if option.isnumeric():
             option = int(option)
             current_story_path = os.path.join(self.state.users_data_path, self.state.username,
@@ -198,7 +198,7 @@ class LoggedView(View):
             self.switch_view(v)
 
     def create_story(self):
-        print('--Criar história--')
+        print('--Criar história--\n')
         title = input('Título: ')
 
         story_data_path = os.path.join(self.state.user_home, title.lower())
@@ -246,7 +246,7 @@ class WorkingStoryView(View):
 
         print(f'Visualizando: {self.story_data["title"]}')
 
-        print('--- Capítulos ---')
+        print('\n--- Capítulos ---\n')
         chapters_count = len(self.story_data['chapters'])
 
         for i in range(0, chapters_count):
@@ -278,7 +278,7 @@ class WorkingStoryView(View):
 
     def create_new_chapter(self):
 
-        chapter_name = input('Nome do capítulo: ')
+        chapter_name = input('\nNome do capítulo: ')
 
         self.story_data['chapters'].append(chapter_name)
 
@@ -295,7 +295,7 @@ class WorkingStoryView(View):
 
     def remove_chapter(self):
 
-        option = input('Digite o índice do capítulo a ser excluído: ')
+        option = input('\nDigite o índice do capítulo a ser excluído: ')
         option = option.lower()
         option = option.strip('c')
         option = int(option)
@@ -320,7 +320,6 @@ class WorkingStoryView(View):
         for i in range(option + 1, chapter_list_length):
             source_file_path = os.path.join(self.state.current_story_home, str(i) + '.txt')
             dest_file_path = os.path.join(self.state.current_story_home, str(i - 1) + '.txt')
-            print('Renomeando:\n', source_file_path, '\npara', dest_file_path)
             os.rename(source_file_path, dest_file_path)
 
         print('Capítulo excluído com sucesso')
@@ -329,7 +328,7 @@ class WorkingStoryView(View):
 
     def remove_story(self):
 
-        option = input(f'Apagar permanentemente {self.story_data["title"]} ? [s/N]')
+        option = input(f'\nApagar permanentemente {self.story_data["title"]} ? [s/N]')
 
         if option.lower() == 's':
 
@@ -349,7 +348,7 @@ class WorkingStoryView(View):
             return
 
     def edit_chapter(self):
-        chapter_num = input('Índice do capítulo: ')
+        chapter_num = input('Índice do capítulo: \n')
         chapter_file_path = os.path.join(self.state.current_story_home, f'{chapter_num}.txt')
 
         if os.path.isfile(chapter_file_path):
@@ -363,7 +362,7 @@ class WorkingStoryView(View):
 
 class SearchView(View):
     def prompt(self):
-        print('Busca de histórias')
+        print('\nBusca de histórias\n')
         print('1 - Busca por título')
         print('2 - Busca por autor')
         print('3 - Voltar')
@@ -383,6 +382,7 @@ class SearchView(View):
 
     def search_by_author(self):
         name = input('Termo de busca: ')
+        print()
 
         with open(self.state.users_json_path, 'r') as file:
             users_data = json.load(file)
@@ -395,13 +395,13 @@ class SearchView(View):
 
         length = len(results)
         if length < 1:
-            print('Nenhum resultado encontrado.')
+            print('\nNenhum resultado encontrado.')
             return
 
         for i in range(0, length):
             print(f' {i} - {results[i]}')
 
-        option = input('Escolha um autor para vizualizar as obras: ')
+        option = input('\nEscolha um autor para vizualizar as obras: ')
 
         option = int(option)
         if option < length:
@@ -419,22 +419,23 @@ class AuthorView(View):
             self.author_data = json.load(file)
 
     def prompt(self):
-        print(f'Bem vindo ao perfil de {self.author}')
+        print(f'Bem vindo ao perfil de {self.author}\n')
 
         length = len(self.author_data['stories'])
         i = 0
 
         if length < 1:
-            print('Nenhuma obra publicada')
+            print('Nenhuma obra publicada\n')
         else:
-            print('Obras: ')
+            print('\nObras: ')
             for i in range(0, length):
                 print(f'{i} - {self.author_data["stories"][i]}')
 
+        print()
         print(f'{length} - Adicionar autor aos favoritos')
         print(f'{length + 1} - Voltar')
 
-        option = input('Opção: ')
+        option = input('\nOpção: ')
         return int(option)
 
     def run(self, option: str):
@@ -464,7 +465,7 @@ class AuthorView(View):
     def add_fav_author(self):
 
         if self.author in self.state.user_data['fav_authors']:
-            print('Autor já favoritado')
+            print('Autor já favoritado\n')
             return
         else:
             self.state.user_data['fav_authors'].append(self.author)
@@ -476,12 +477,12 @@ class AuthorView(View):
 class FavoritesView(View):
 
     def prompt(self):
-        print('-Favoritos-')
+        print('\n-Favoritos-\n')
         print('1 - Autores favoritos')
         print('2 - Histórias favoritas')
         print('3 - Voltar')
 
-        option = input('Opção: ')
+        option = input('\nOpção: ')
         return option
 
     def run(self, option: str):
@@ -495,7 +496,7 @@ class FavoritesView(View):
             print('Opção inválida')
 
     def list_fav_authors(self):
-        print('-Autores favoritos-')
+        print('-Autores favoritos-\n')
 
         i: int
 
@@ -505,7 +506,7 @@ class FavoritesView(View):
             print(f'{i} - {self.state.user_data["fav_authors"][i]}')
         print(f'{fav_authors_len} - Voltar')
 
-        option = int(input('Opção: '))
+        option = int(input('\nOpção: '))
 
         if option < fav_authors_len:
             v = AuthorView(self.state, self.state.user_data["fav_authors"][option])
@@ -516,7 +517,7 @@ class FavoritesView(View):
             print('Opção inválida')
 
     def list_fav_stories(self):
-        print('-Histórias favoritas-')
+        print('\n-Histórias favoritas-\n')
 
         i: int
 
@@ -531,9 +532,9 @@ class FavoritesView(View):
                 broken_path = full_path.split('/')
             story_name = broken_path[-1]
             print(f'{i} - {story_name}')
-        print(f'{fav_stories_len} - Voltar')
+        print(f'\n{fav_stories_len} - Voltar')
 
-        option = input('Opção: ')
+        option = input('\nOpção: ')
 
         if option.isnumeric():
             option = int(option)
@@ -558,12 +559,14 @@ class ReadStoryView(View):
             self.story_data = json.load(file)
 
     def prompt(self):
+        print()
         print(f'Título: {self.story_data["title"]}')
         print(f'Classificação: {self.story_data["rating"]}')
         print(f'Gênero: {self.story_data["genre"]}')
         print(f'Sinopse: {self.story_data["synopsis"]}')
         print(f'Autor: {self.story_data["author"]}')
         print(f'Completo: {self.story_data["is_finished"]}')
+        print()
 
         i = 0
         chapters_count = len(self.story_data['chapters'])
@@ -574,7 +577,8 @@ class ReadStoryView(View):
             for i in range(0, chapters_count):
                 print(f'{i} - {self.story_data["chapters"][i]}')
 
-        print(f'{chapters_count} - Voltar')
+        print(f'\n{chapters_count} - Voltar')
+        print()
 
         if self.story_path in self.state.user_data['fav_stories']:
             print(f'{chapters_count + 1} - Remover dos favoritos')
@@ -607,22 +611,22 @@ class ReadStoryView(View):
             self.state.user_data['fav_stories'].append(self.story_path)
             with open(self.state.user_json_path, 'w') as file:
                 json.dump(self.state.user_data, file)
-            print('História salva em seus favoritos')
+            print('História salva em seus favoritos\n')
         else:
-            print('História já favoritada')
+            print('História já favoritada\n')
 
     def display_chapter(self, chap_num):
         text_file_path = os.path.join(self.story_path, f'{chap_num}.txt')
         with open(text_file_path, 'r') as file:
             content = file.read()
-        print(f'\nCapítulo {chap_num}:\n\n', content, '\n')
+        print(f'\nCapítulo {chap_num}:\n\n', content, '\n\n')
 
 
 class AdminControlPanelView(View):
     def prompt(self):
-        print('Painel de Controle da Administração')
+        print('\nPainel de Controle da Administração\n\n')
         print('1 - Remover usuário')
-        print('2 - Voltar')
+        print('2 - Voltar\n')
 
         option = input('Digite sua opção')
         return option
@@ -636,7 +640,7 @@ class AdminControlPanelView(View):
             print('Opção inválida!')
 
     def remove_user(self):
-        name = input('Termo de busca: ')
+        name = input('\nTermo de busca: ')
 
         with open(self.state.users_json_path, 'r') as file:
             users_data = json.load(file)
@@ -653,9 +657,9 @@ class AdminControlPanelView(View):
             return
 
         for i in range(0, length):
-            print(f' {i} - {results[i]}')
+            print(f'\n{i} - {results[i]}\n')
 
-        option = int(input('Escolha o usuário a ser deletado: '))
+        option = int(input('\nEscolha o usuário a ser deletado: \n'))
 
         user_home = os.path.join(self.state.users_data_path, results[option])
 
