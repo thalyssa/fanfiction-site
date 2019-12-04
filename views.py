@@ -133,10 +133,9 @@ class LoggedView(View):
         print("4 - Pesquisar histórias")
         print("5 - Alterar perfil")
         print("6 - Logout")
-        print("7 - Excluir minha conta")
 
         if self.state.username in self.state.admin_list:
-            print("8 - Painel de administrador")
+            print("7 - Painel de administrador")
 
         option = input('\n\n')
         return option
@@ -159,9 +158,7 @@ class LoggedView(View):
             self.state.user_data = None
             v = InitView(self.state)
             self.switch_view(v)
-        elif option == '7':
-            pass
-        elif option == '8' and self.state.username in self.state.admin_list:
+        elif option == '7' and self.state.username in self.state.admin_list:
             v = AdminControlPanelView(self.state)
             self.switch_view(v)
         else:
