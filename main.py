@@ -52,10 +52,6 @@ view = views.InitView(state)
 state.running = True
 state.view = view
 
-option = ''
-
-print('Admins:\n', state.admin_list)
-
 while state.running:
     option = state.prompt()
     state.run(option)

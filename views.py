@@ -288,7 +288,10 @@ class WorkingStoryView(View):
         chapter_index = len(self.story_data['chapters']) - 1
         chapter_file_path = os.path.join(self.state.current_story_home, f'{chapter_index}.txt')
 
-        subprocess.run(['nano', chapter_file_path])
+        if os.name is 'nt':
+            subprocess.call(['notepad', chapter_file_path])
+        else:
+            subprocess.run(['nano', chapter_file_path])
 
     def remove_chapter(self):
 
@@ -350,7 +353,10 @@ class WorkingStoryView(View):
         chapter_file_path = os.path.join(self.state.current_story_home, f'{chapter_num}.txt')
 
         if os.path.isfile(chapter_file_path):
-            subprocess.run(['nano', chapter_file_path])
+            if os.name is 'nt':
+                subprocess.run(['notepad', chapter_file_path])
+            else:
+                subprocess.run(['nano', chapter_file_path])
         else:
             print('Índice inválido')
 
@@ -518,7 +524,11 @@ class FavoritesView(View):
 
         for i in range(0, fav_stories_len):
             full_path = self.state.user_data['fav_stories'][i]
-            broken_path = full_path.split('/')  # TODO: Fazer compatível com outras plataformas
+            broken_path = []
+            if os.name is 'nt':
+                broken_path = full_path.split('\\')
+            else:
+                broken_path = full_path.split('/')
             story_name = broken_path[-1]
             print(f'{i} - {story_name}')
         print(f'{fav_stories_len} - Voltar')
