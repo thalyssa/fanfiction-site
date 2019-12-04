@@ -17,6 +17,8 @@ class State:
     view: views.View
     running: bool
 
+    view_stack = []
+
     def run(self, option):
         self.view.run(option)
 

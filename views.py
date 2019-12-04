@@ -33,6 +33,14 @@ class View:
     def run(self, option: str):
         print(f'Opção: {option}')
 
+    def back(self):
+        if len(self.state.view_stack) > 0:
+            self.state.view = self.state.view_stack.pop()
+
+    def switch_view(self, next_view):
+        self.state.view_stack.append(self)
+        self.state.view = next_view
+
 
 class InitView(View):
 
@@ -74,7 +82,7 @@ class InitView(View):
                 self.state.username = username
                 self.state.user_data = user_data
                 v = LoggedView(self.state)
-                self.state.view = v
+                self.switch_view(v)
             else:
                 print('Senha incorreta')
         else:
@@ -137,28 +145,27 @@ class LoggedView(View):
 
     def run(self, option):
         if option == '1':
-            v = CreateStoryView(self.state)
-            self.state.view = v
+            self.create_story()
         elif option == '2':
             self.list_my_stories()
         elif option == '3':
             v = FavoritesView(self.state)
-            self.state.view = v
+            self.switch_view(v)
         elif option == '4':
             v = SearchView(self.state)
-            self.state.view = v
+            self.switch_view(v)
         elif option == '5':
             self.update_profile()
         elif option == '6':
             self.state.username = None
             self.state.user_data = None
             v = InitView(self.state)
-            self.state.view = v
+            self.switch_view(v)
         elif option == '7':
             pass
         elif option == '8' and self.state.username in self.state.admin_list:
             v = AdminControlPanelView(self.state)
-            self.state.view = v
+            self.switch_view(v)
         else:
             print('Opção inválida')
 
@@ -189,11 +196,9 @@ class LoggedView(View):
             self.state.current_story_home = current_story_path
 
             v = WorkingStoryView(self.state)
-            self.state.view = v
+            self.switch_view(v)
 
-
-class CreateStoryView(View):
-    def prompt(self):
+    def create_story(self):
         print('--Criar história--')
         title = input('Título: ')
 
@@ -227,13 +232,6 @@ class CreateStoryView(View):
 
         with open(self.state.user_json_path, 'w') as file:
             json.dump(self.state.user_data, file)
-
-        v = WorkingStoryView(self.state)
-        self.state.view = v
-
-    def run(self, option):
-        pass
-
 
 class WorkingStoryView(View):
     story_data: dict
@@ -275,7 +273,7 @@ class WorkingStoryView(View):
         elif option == '4':
             self.remove_story()
         elif option == '5':
-            pass
+            self.back()
         else:
             print('Opção inválida')
 
@@ -331,9 +329,6 @@ class WorkingStoryView(View):
 
         option = input(f'Apagar permanentemente {self.story_data["title"]} ? [s/N]')
 
-        print('Dados da estoria atual:\n', self.story_data)
-        print('\nDados do usuario atual:\n', self.state.user_data)
-
         if option.lower() == 's':
 
             self.state.user_data['stories'].remove(self.story_data['title'].lower())
@@ -346,8 +341,7 @@ class WorkingStoryView(View):
 
             print('Historia removida com sucesso')
 
-            v = LoggedView(self.state)
-            self.state.view = v
+            self.back()
 
         else:
             return
@@ -379,7 +373,7 @@ class SearchView(View):
         elif option == '2':
             self.search_by_author()
         elif option == '3':
-            pass
+            self.back()
         else:
             print('Opçao invalida')
 
@@ -408,7 +402,7 @@ class SearchView(View):
         option = int(option)
         if option < length:
             v = AuthorView(self.state, results[option])
-            self.state.view = v
+            self.switch_view(v)
 
 
 class AuthorView(View):
@@ -453,15 +447,15 @@ class AuthorView(View):
             if opt == 0:
                 self.add_fav_author()
             else:
-                print('Voltar escolhido... nao implementado.')
+                self.back()
         elif opt == stories_count:
             self.add_fav_author()
         elif opt >= stories_count + 1:
-            print('Voltar escolhido... nao implementado.')
+            self.back()
         elif opt >= 0:
             story_path = os.path.join(self.author_home, self.author_data['stories'][opt])
             v = ReadStoryView(self.state, story_path)
-            self.state.view = v
+            self.switch_view(v)
 
     def add_fav_author(self):
 
@@ -492,7 +486,7 @@ class FavoritesView(View):
         elif option == '2':
             self.list_fav_stories()
         elif option == '3':
-            pass
+            self.back()
         else:
             print('Opçao invalida')
 
@@ -511,9 +505,9 @@ class FavoritesView(View):
 
         if option < fav_authors_len:
             v = AuthorView(self.state, self.state.user_data["fav_authors"][option])
-            self.state.view = v
+            self.switch_view(v)
         elif option == fav_authors_len:
-            print('Voltar selecionado... Nao implementado =(')
+            self.back()
         else:
             print('Opçao invalida')
 
@@ -536,12 +530,12 @@ class FavoritesView(View):
         if option.isnumeric():
             option = int(option)
             if option == fav_stories_len:
-                print('Voce escolheu voltar... Nao implementado =(')
+                self.back()
             elif (option < 0) and (option > fav_stories_len):
                 print('Opçao invalida')
             else:
                 v = ReadStoryView(self.state, self.state.user_data['fav_stories'][option])
-                self.state.view = v
+                self.switch_view(v)
 
         else:
             print('Opçao invalida')
@@ -593,7 +587,7 @@ class ReadStoryView(View):
         chapters_count = len(self.story_data['chapters'])
 
         if opt == chapters_count:
-            print('Voltar nao implementado')
+            self.back()
         elif opt < 0:
             print('Opcao invalida')
         elif opt == chapters_count + 1:
@@ -620,19 +614,17 @@ class ReadStoryView(View):
 class AdminControlPanelView(View):
     def prompt(self):
         print('Painel de Controle da Administração')
-        print('1 - Adicionar uma nova categoria')
-        print('2 - Remover usuário')
+        print('1 - Remover usuário')
+        print('2 - Voltar')
 
         option = input('Digite sua opção')
         return option
 
     def run(self, option: str):
         if option == '1':
-            pass
-        elif option == '2':
             self.remove_user()
-        elif option == '3':
-            pass
+        elif option == '2':
+            self.back()
         else:
             print('Opção inválida!')
 
